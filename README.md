@@ -1,6 +1,4 @@
 # AlertasUrbanos
-## Rotas
-- GET /alertas/estatisticas → estatísticas agrupadas
 
 ## Como rodar
 1. Criar o bd  urban_alerts e rodar a query psql do arquivo database/schema.sql
