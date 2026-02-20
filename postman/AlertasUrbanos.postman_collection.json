@@ -1,0 +1,444 @@
+{
+  "info": {
+    "name": "Sistema de Alertas Urbanos",
+    "description": "Collection completa para testar todos os endpoints da API de Alertas Urbanos.\n\nBase URL: http://localhost:3001\n\nUS01 – Criar Alerta (POST /alertas)\nUS02 – Listar Alertas (GET /alertas)\nUS03 – Filtrar Alertas (GET /alertas?type=&status=)\nUS04 – Atualizar Status (PATCH /alertas/:id)\nUS05 – Estatísticas (GET /alertas/estatisticas)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "alert_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/health",
+        "description": "Verifica se a API está no ar."
+      },
+      "response": []
+    },
+    {
+      "name": "US01 – Criar Alerta",
+      "item": [
+        {
+          "name": "POST /alertas — Criar alerta válido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Retorna success true', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.have.property('id');",
+                  "  pm.collectionVariables.set('alert_id', json.data.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/alertas",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Alagamento na Av. Central\",\n  \"description\": \"Via completamente alagada após chuvas intensas. Trânsito interrompido.\",\n  \"type\": \"enchente\",\n  \"location\": \"Av. Central, 500 — São Paulo, SP\",\n  \"latitude\": -23.5616,\n  \"longitude\": -46.6560\n}"
+            },
+            "description": "US01 – Cria um novo alerta. Retorna 201 Created com o objeto criado."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /alertas — Campos obrigatórios ausentes (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 422 Unprocessable Entity', () => pm.response.to.have.status(422));",
+                  "pm.test('Retorna erros de validação', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.false;",
+                  "  pm.expect(json.errors).to.be.an('array').that.is.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/alertas",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"\",\n  \"description\": \"\",\n  \"type\": \"tipo_invalido\",\n  \"location\": \"\"\n}"
+            },
+            "description": "Testa validação: campos obrigatórios vazios e tipo inválido."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /alertas — Todos os tipos válidos",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/alertas",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Deslizamento no Morro\",\n  \"description\": \"Deslizamento registrado após chuvas fortes. Famílias evacuadas.\",\n  \"type\": \"deslizamento\",\n  \"location\": \"Morro da Cruz — Florianópolis, SC\"\n}"
+            },
+            "description": "Tipos válidos: enchente | deslizamento | incendio | acidente | obra | criminalidade | falta_energia | outros"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "US02 – Listar Alertas",
+      "item": [
+        {
+          "name": "GET /alertas — Listar todos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Retorna array de alertas', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "});",
+                  "pm.test('Ordenado por data decrescente', () => {",
+                  "  const alertas = pm.response.json().data;",
+                  "  for (let i = 1; i < alertas.length; i++) {",
+                  "    pm.expect(new Date(alertas[i-1].created_at) >= new Date(alertas[i].created_at)).to.be.true;",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/alertas",
+            "description": "US02 – Lista todos os alertas ordenados por data (mais recente primeiro)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /alertas/:id — Buscar por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Retorna alerta correto', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.data.id).to.equal(parseInt(pm.collectionVariables.get('alert_id')));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/alertas/{{alert_id}}",
+            "description": "Busca um alerta específico pelo ID."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /alertas/:id — ID inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404 Not Found', () => pm.response.to.have.status(404));",
+                  "pm.test('Mensagem de erro', () => {",
+                  "  pm.expect(pm.response.json().success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/alertas/99999",
+            "description": "Testa retorno 404 para ID inexistente."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "US03 – Filtrar Alertas",
+      "item": [
+        {
+          "name": "GET /alertas?type=enchente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Todos alertas são do tipo filtrado', () => {",
+                  "  const alertas = pm.response.json().data;",
+                  "  alertas.forEach(a => pm.expect(a.type).to.equal('enchente'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/alertas?type=enchente",
+              "query": [{ "key": "type", "value": "enchente" }]
+            },
+            "description": "US03 – Filtra alertas pelo tipo 'enchente'."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /alertas?status=ativo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Todos alertas têm status ativo', () => {",
+                  "  const alertas = pm.response.json().data;",
+                  "  alertas.forEach(a => pm.expect(a.status).to.equal('ativo'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/alertas?status=ativo",
+              "query": [{ "key": "status", "value": "ativo" }]
+            },
+            "description": "Filtra apenas alertas com status 'ativo'."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /alertas?type=acidente&status=ativo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Filtro combinado correto', () => {",
+                  "  const alertas = pm.response.json().data;",
+                  "  alertas.forEach(a => {",
+                  "    pm.expect(a.type).to.equal('acidente');",
+                  "    pm.expect(a.status).to.equal('ativo');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/alertas?type=acidente&status=ativo",
+              "query": [
+                { "key": "type",   "value": "acidente" },
+                { "key": "status", "value": "ativo"    }
+              ]
+            },
+            "description": "Filtro combinado: tipo + status."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "US04 – Atualizar Status",
+      "item": [
+        {
+          "name": "PATCH /alertas/:id — Marcar como resolvido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Status atualizado para resolvido', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data.status).to.equal('resolvido');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/alertas/{{alert_id}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"resolvido\"\n}"
+            },
+            "description": "US04 – Atualiza o status de um alerta para 'resolvido'."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /alertas/:id — Reverter para ativo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Status atualizado para ativo', () => {",
+                  "  pm.expect(pm.response.json().data.status).to.equal('ativo');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/alertas/{{alert_id}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ativo\"\n}"
+            },
+            "description": "Reverte o status para 'ativo'."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /alertas/:id — Status inválido (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 422 Unprocessable Entity', () => pm.response.to.have.status(422));",
+                  "pm.test('Retorna erro de validação', () => {",
+                  "  pm.expect(pm.response.json().success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/alertas/{{alert_id}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"status_invalido\"\n}"
+            },
+            "description": "Testa validação de status inválido."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "US05 – Dashboard / Estatísticas",
+      "item": [
+        {
+          "name": "GET /alertas/estatisticas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Retorna estrutura correta', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.have.property('byType');",
+                  "  pm.expect(json.data).to.have.property('byStatus');",
+                  "  pm.expect(json.data).to.have.property('recent24h');",
+                  "  pm.expect(json.data).to.have.property('timeline');",
+                  "});",
+                  "pm.test('byType é um array', () => {",
+                  "  pm.expect(pm.response.json().data.byType).to.be.an('array');",
+                  "});",
+                  "pm.test('recent24h é um número', () => {",
+                  "  pm.expect(pm.response.json().data.recent24h).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/alertas/estatisticas",
+            "description": "US05 – Retorna estatísticas: total por tipo, por status, últimas 24h e timeline 7 dias."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Extras",
+      "item": [
+        {
+          "name": "PUT /alertas/:id — Atualizar alerta completo",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/alertas/{{alert_id}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Título atualizado\",\n  \"description\": \"Descrição atualizada com mais detalhes.\",\n  \"type\": \"outros\",\n  \"location\": \"Nova localização, SP\",\n  \"status\": \"ativo\"\n}"
+            },
+            "description": "Atualiza todos os campos de um alerta."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /alertas/:id — Remover alerta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Mensagem de sucesso', () => {",
+                  "  pm.expect(pm.response.json().success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/alertas/{{alert_id}}",
+            "description": "Remove um alerta pelo ID."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
