@@ -1,0 +1,90 @@
+List,Title,Description,Labels,Due Date,Members
+Product Backlog,[PLACEHOLDER] Product Backlog,Card placeholder para criação automática da lista. Pode apagar após o import.,setup,,
+Sprint Backlog,[PLACEHOLDER] Sprint Backlog,Card placeholder para criação automática da lista. Pode apagar após o import.,setup,,
+To Do,[PLACEHOLDER] To Do,Card placeholder para criação automática da lista. Pode apagar após o import.,setup,,
+Doing,[PLACEHOLDER] Doing,Card placeholder para criação automática da lista. Pode apagar após o import.,setup,,
+Code Review,[PLACEHOLDER] Code Review,Card placeholder para criação automática da lista. Pode apagar após o import.,setup,,
+Testing,[PLACEHOLDER] Testing,Card placeholder para criação automática da lista. Pode apagar após o import.,setup,,
+Done,[PLACEHOLDER] Done,Card placeholder para criação automática da lista. Pode apagar após o import.,setup,,
+Impedimentos,[PLACEHOLDER] Impedimentos,Card placeholder para criação automática da lista. Pode apagar após o import.,setup,,
+Product Backlog,US01 - Criar Alerta,"Como operador, quero cadastrar um alerta para registrar uma ocorrência urbana.
+
+**Critérios de aceite**
+- Campos obrigatórios: tipo, descrição, local, data
+- Validação no frontend e backend
+- Persistência em banco de dados
+- Retorno HTTP 201 Created
+
+**Tasks (checklist)**
+- [ ] Criar model `Alert`
+- [ ] Criar migration/tabela no banco
+- [ ] Implementar endpoint `POST /alertas`
+- [ ] Implementar validações de dados (backend)
+- [ ] Criar formulário HTML (frontend)
+- [ ] Implementar `fetch`/AJAX `POST` (frontend)
+- [ ] Testar via Postman/Insomnia
+",must,,
+Product Backlog,US02 - Listar Alertas,"Como usuário, quero visualizar todos os alertas cadastrados.
+
+**Critérios de aceite**
+- Lista ordenada por data (mais recente primeiro)
+- Consumo via API REST
+- Renderização dinâmica na interface
+
+**Tasks (checklist)**
+- [ ] Implementar endpoint `GET /alertas`
+- [ ] Implementar ordenação por data (backend)
+- [ ] Criar componente de listagem (frontend)
+- [ ] Implementar `fetch`/AJAX `GET` (frontend)
+- [ ] Tratar erros e estados (loading/empty/error)
+",must,,
+Product Backlog,US03 - Filtrar Alertas,"Como usuário, quero filtrar alertas por tipo.
+
+**Critérios de aceite**
+- Filtro via query param `?tipo=`
+- Atualização dinâmica na interface
+- Retorno filtrado corretamente
+
+**Tasks (checklist)**
+- [ ] Implementar filtro por query param no backend
+- [ ] Criar dropdown/select de tipos (frontend)
+- [ ] Integrar filtro com API (frontend)
+- [ ] Atualizar lista dinamicamente sem reload total
+",must,,
+Product Backlog,US04 - Atualizar Status,"Como operador, quero marcar um alerta como resolvido.
+
+**Critérios de aceite**
+- Campo `status` (ativo/resolvido)
+- Endpoint `PATCH /alertas/:id`
+- Atualização refletida na interface
+
+**Tasks (checklist)**
+- [ ] Criar coluna/campo `status` no model/migration
+- [ ] Implementar endpoint `PATCH /alertas/:id`
+- [ ] Atualizar status no banco (service/repository)
+- [ ] Criar botão “Resolver” na UI
+- [ ] Atualizar UI dinamicamente após PATCH
+",should,,
+Product Backlog,US05 - Dashboard Estatístico,"Como gestor, quero visualizar estatísticas por tipo de alerta.
+
+**Critérios de aceite**
+- Total por tipo
+- Total de alertas ativos
+- Gráfico com Chart.js (ou similar)
+
+**Tasks (checklist)**
+- [ ] Implementar endpoint `GET /estatisticas`
+- [ ] Agregar dados por tipo e status (backend)
+- [ ] Integrar Chart.js (frontend)
+- [ ] Renderizar gráfico e cards-resumo
+- [ ] Testar atualização dinâmica
+",should,,
+Product Backlog,Definition of Done (DoD),"- Código versionado
+- Endpoints REST sem erro 500
+- Validações FE+BE
+- Separação Model/Service/Controller
+- Demo no navegador",process,,
+Sprint Backlog,Sprint 1 (40min) – Arquitetura + US01,Objetivo: Cadastro completo funcionando.,sprint,,
+Sprint Backlog,Sprint 2 (40min) – US02 + US03,Objetivo: Listagem e filtro funcionando.,sprint,,
+Sprint Backlog,Sprint 3 (40min) – US04,Objetivo: Status ativo/resolvido funcionando.,sprint,,
+Sprint Backlog,Sprint 4 (40min) – US05 + Demo,Objetivo: Dashboard + preparação da apresentação.,sprint,,
